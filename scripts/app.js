@@ -4,8 +4,12 @@ function start( )
 	canvas.addEventListener('webglcontextlost',function(event){event.preventDefault();},false);
 	canvas.addEventListener('webglcontextrestored',function(){init();},false);
 
+	document.getElementById('model-input')
+  		.addEventListener('change', readModel, false);
+
 	init();
 	drawFrame();
+	// simulateData();
 }
 
 function init()
@@ -33,6 +37,32 @@ function init()
 
 var time = now();
 function now() { return (new Date()).getTime()/1000; }
+
+function simulateData()
+{
+	var message = new ArrayBuffer(32);
+	var th = new TransportHeader(CONSTS.Prefix, 1, 1, CONSTS.MediaChannel.commands, CONSTS.TransportFlags.startOfPacket | CONSTS.TransportFlags.important, 42);
+	th.writeTo(message);
+
+	var blob = new Blob([message]);
+	saveAs(blob, "th.vas");
+}
+
+function readModel(e)
+{
+	var file = e.target.files[0];
+	if (!file) {
+	    return;
+	}
+	var reader = new FileReader();
+	reader.onload = function(e) {
+	    var message = e.target.result;
+	    var th = new TransportHeader();
+	    th.readFrom(message);
+	    console.log(th);
+	};
+	reader.readAsArrayBuffer(file);
+}
 
 function drawFrame()
 {

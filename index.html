@@ -6,7 +6,11 @@
 
 	<script src="scripts/webgl-fmi.js"></script>
 	<script src="scripts/shaders.js"></script>
-	<script src="scripts/webgl-obj-loader.js"></script>
+    <script src="scripts/lib/Blob.js"></script>
+    <script src="scripts/lib/FileSaver.min.js"></script>
+	<script src="scripts/lib/webgl-obj-loader.js"></script>
+    <script src="scripts/protocol/constants.js"></script>
+    <script src="scripts/protocol/transport_header.js"></script>
 	<script src="scripts/app.js"></script>
 	<script type="text/plain" id="my_cube.obj">
         ####
@@ -51,5 +55,6 @@
 	<canvas id="picasso" width="600" height="400" style="border: solid;">
 		Искаме canvas, но няма!
 	</canvas>
+    <br><input type="file" id="model-input" />
 </body>
 </html>
