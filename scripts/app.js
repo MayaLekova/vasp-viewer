@@ -54,14 +54,28 @@ function readModel(e)
 	if (!file) {
 	    return;
 	}
-	var reader = new FileReader();
-	reader.onload = function(e) {
-	    var message = e.target.result;
-	    var th = new TransportHeader();
-	    th.readFrom(message);
-	    console.log(th);
-	};
-	reader.readAsArrayBuffer(file);
+	if(/\.obj/.exec(file.name)) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+		    var objBuf = e.target.result;
+		    var objStr = new TextDecoder('UTF-8').decode(objBuf);
+
+			mesh = new OBJ.Mesh(objStr);
+			OBJ.initMeshBuffers(gl, mesh);		    
+		};
+		reader.readAsArrayBuffer(file);
+	} else if(/\.vas/.exec(file.name)) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+		    var message = e.target.result;
+		    var th = new TransportHeader();
+		    th.readFrom(message);
+		    console.log(th);
+		};
+		reader.readAsArrayBuffer(file);
+	} else {
+		console.log('Unknown file format');
+	}
 }
 
 function drawFrame()
