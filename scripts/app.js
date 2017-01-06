@@ -46,6 +46,13 @@ function simulateData()
 
 	var blob = new Blob([message]);
 	saveAs(blob, "th.vas");
+
+	var message2 = new ArrayBuffer(64);
+	var mh = new MediaHeader(3, 256, 1234);
+	mh.writeTo(message2);
+
+	var blob2 = new Blob([message2]);
+	saveAs(blob2, "mh.vas");
 }
 
 function readModel(e)
@@ -64,11 +71,20 @@ function readModel(e)
 			OBJ.initMeshBuffers(gl, mesh);		    
 		};
 		reader.readAsArrayBuffer(file);
-	} else if(/\.vas/.exec(file.name)) {
+	} else if(/th\.vas/.exec(file.name)) {
 		var reader = new FileReader();
 		reader.onload = function(e) {
 		    var message = e.target.result;
 		    var th = new TransportHeader();
+		    th.readFrom(message);
+		    console.log(th);
+		};
+		reader.readAsArrayBuffer(file);
+	} else if(/mh\.vas/.exec(file.name)) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+		    var message = e.target.result;
+		    var th = new MediaHeader();
 		    th.readFrom(message);
 		    console.log(th);
 		};
