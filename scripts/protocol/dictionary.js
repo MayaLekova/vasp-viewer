@@ -31,9 +31,13 @@ DictEntry.prototype.readFrom = function(buf) {
 
 	this.type = new Uint8Array(buf, 21, 1)[0];
 	this.size = new Uint16Array(buf, 22, 1)[0];
-	// TODO: if size == 0 read it from data
+	var dataOffset = 24;
+	if(this.size == 0) {
+		this.size = new Uint32Array(buf, 24, 1)[0];
+		dataOffset += 4;
+	}
 
-	this.data = new Uint8Array(buf, 24, this.size);
+	this.data = new Uint8Array(buf, dataOffset, this.size);
 };
 
 var IDictData = function(
