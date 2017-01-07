@@ -11,9 +11,11 @@
 	'uniform vec3 uLightDir;'+
 	''+
 	'attribute vec3 aXYZ;'+
+	'attribute vec2 aST;'+
 	'attribute vec3 aColor;'+
 	'attribute vec3 aNormal;'+
 	''+
+	'varying vec2 vST;'+
 	'varying vec3 vColor;'+
 	''+
 	'void main ()'+
@@ -22,6 +24,7 @@
 	'	gl_Position = uProjectionMatrix * mvMatrix * vec4(aXYZ,1);'+
 	'	mat4 nMatrix = uUseNormalMatrix?uNormalMatrix:mvMatrix;'+
 	''+
+	'	vST = aST;'+
 	'	vColor = uAmbientColor*aColor;'+
 	''+
 	'	vec3 light = normalize(-uLightDir);'+
@@ -31,8 +34,14 @@
 	
 var fShader =
 	'precision mediump float;'+
+	'uniform sampler2D uSampler;'+
+	'varying vec2 vST;'+
 	'varying vec3 vColor;'+
+	'uniform bool uUseTexture;'+
 	'void main( )'+
 	'{'+
-	'	gl_FragColor = vec4(vColor,1);'+
+	'	if(uUseTexture)'+
+	'		gl_FragColor = texture2D(uSampler,vST);'+
+	'	else'+
+	'		gl_FragColor = vec4(vColor,1.0);'+
 	'}';

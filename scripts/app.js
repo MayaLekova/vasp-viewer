@@ -29,10 +29,35 @@ function init()
 	gl.uniform3f(uDiffuseColor,1,1,1);
 	gl.uniform3f(uLightDir,0,0,-1);
 
+	// създаваме (засега празна) текстура
+	texture = gl.createTexture();
+
+	// зареждаме асинхронно изображението за текстурата
+	var image = new Image();
+	image.onload = function() {imageLoaded(image)};
+	image.src = 'data/leopard.jpg';
+
 	var objStr = document.getElementById('my_cube.obj').innerHTML;
 	mesh = new OBJ.Mesh(objStr);
 
 	OBJ.initMeshBuffers(gl, mesh);
+}
+
+// функция, която се извиква след зареждането на изображение
+function imageLoaded(image)
+{
+	// правим си текуща текстура
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	
+	// прехвърляме данните от картинката в текстурата
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+	
+	// задаваме филтри за увеличаване и намаляване
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	
+	// махаме текуща текстура
+	gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 var time = now();
@@ -103,7 +128,6 @@ function drawFrame()
 
 	useMatrix();
 
-	// now to render the mesh
 	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
 	gl.enableVertexAttribArray(aXYZ);
 	gl.vertexAttribPointer(aXYZ, mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -111,6 +135,23 @@ function drawFrame()
 	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normalBuffer);
 	gl.enableVertexAttribArray(aNormal);
 	gl.vertexAttribPointer(aNormal, mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	if(mesh.textures.length) {
+		// подаване на текстурни координати
+		gl.bindBuffer(gl.ARRAY_BUFFER, mesh.textureBuffer);
+		gl.enableVertexAttribArray(aST);
+		gl.vertexAttribPointer(aST, mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.uniform1i(uUseTexture,true);
+
+		// ако текстурата е готова, правим я текуща
+		if (gl.isTexture(texture))
+		{
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+		}
+	} else {
+		gl.uniform1i(uUseTexture,false);
+		gl.disableVertexAttribArray(aST);
+	}
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 	gl.drawElements(gl.TRIANGLES, mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
