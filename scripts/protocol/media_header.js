@@ -8,14 +8,16 @@ var MediaHeader = function(
 	this.PTS = PTS
 };
 
-MediaHeader.prototype.writeTo = function(buf) {
+/*MediaHeader.prototype.writeTo = function(buf) {
 	new Uint32Array(buf, 0, 1)[0] = this.type;
 	new Uint32Array(buf, 8, 1)[0] = this.size;
 	new Uint32Array(buf, 32, 1)[0] = this.PTS;
-};
+};*/
 
 MediaHeader.prototype.readFrom = function(buf) {
-	this.type = new Uint32Array(buf, 0, 1)[0];
-	this.size = new Uint32Array(buf, 8, 1)[0];
-	this.PTS = new Uint32Array(buf, 32, 1)[0];
+	var typeSize = new Uint32Array(buf, 0, 1)[0];
+	this.type = typeSize & 0xFF;
+	this.size = typeSize >>> 8;
+
+	this.PTS = new Uint32Array(buf, 4, 1)[0];
 };

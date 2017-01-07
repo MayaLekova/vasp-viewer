@@ -18,4 +18,8 @@ var CONSTS = {
 	},
 
 	Prefix: 0b10010111,
+
+	DictEntryHeaderSize: 24,
+	TransportHeaderSize: 4,
+	TransportPacketSize: 256,
 }

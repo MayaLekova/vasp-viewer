@@ -71,22 +71,20 @@ function readModel(e)
 			OBJ.initMeshBuffers(gl, mesh);		    
 		};
 		reader.readAsArrayBuffer(file);
-	} else if(/th\.vas/.exec(file.name)) {
+	} else if(/\.vas/.exec(file.name)) {
 		var reader = new FileReader();
 		reader.onload = function(e) {
 		    var message = e.target.result;
-		    var th = new TransportHeader();
-		    th.readFrom(message);
-		    console.log(th);
-		};
-		reader.readAsArrayBuffer(file);
-	} else if(/mh\.vas/.exec(file.name)) {
-		var reader = new FileReader();
-		reader.onload = function(e) {
-		    var message = e.target.result;
-		    var th = new MediaHeader();
-		    th.readFrom(message);
-		    console.log(th);
+		    var transport = new Transport();
+		    var dict = transport.readFrom(message);
+		    console.log(dict);
+		    console.log(dict.mediaHeader);
+		    console.log(dict.entries[0]);
+
+		    var objStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
+
+			mesh = new OBJ.Mesh(objStr);
+			OBJ.initMeshBuffers(gl, mesh);		    
 		};
 		reader.readAsArrayBuffer(file);
 	} else {
