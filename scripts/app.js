@@ -38,9 +38,10 @@ function init()
 	image.src = 'data/leopard.jpg';
 
 	var objStr = document.getElementById('my_cube.obj').innerHTML;
-	mesh = new OBJ.Mesh(objStr);
+	meshes = [];
+	meshes.push(new OBJ.Mesh(objStr));
 
-	OBJ.initMeshBuffers(gl, mesh);
+	OBJ.initMeshBuffers(gl, meshes[0]);
 }
 
 // функция, която се извиква след зареждането на изображение
@@ -92,8 +93,9 @@ function readModel(e)
 		    var objBuf = e.target.result;
 		    var objStr = new TextDecoder('UTF-8').decode(objBuf);
 
-			mesh = new OBJ.Mesh(objStr);
-			OBJ.initMeshBuffers(gl, mesh);		    
+		    meshes = [];
+			meshes.push(new OBJ.Mesh(objStr));
+			OBJ.initMeshBuffers(gl, meshes[0]);		    
 		};
 		reader.readAsArrayBuffer(file);
 	} else if(/\.vas/.exec(file.name)) {
@@ -101,15 +103,21 @@ function readModel(e)
 		reader.onload = function(e) {
 		    var message = e.target.result;
 		    var transport = new Transport();
-		    var dict = transport.readFrom(message);
-		    console.log(dict);
-		    console.log(dict.mediaHeader);
-		    console.log(dict.entries[0]);
+		    var dicts = transport.readFrom(message);
 
-		    var objStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
+		    meshes = [];
+		    for(var i = 0; i < dicts.length; ++i) {
+		    	var dict = dicts[i];
+			    console.log(dict);
+			    console.log(dict.mediaHeader);
+			    console.log(dict.entries[0]);
 
-			mesh = new OBJ.Mesh(objStr);
-			OBJ.initMeshBuffers(gl, mesh);		    
+			    var objStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
+
+				mesh = new OBJ.Mesh(objStr);
+				OBJ.initMeshBuffers(gl, mesh);
+				meshes.push(mesh);
+			}		    
 		};
 		reader.readAsArrayBuffer(file);
 	} else {
@@ -128,33 +136,37 @@ function drawFrame()
 
 	useMatrix();
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
-	gl.enableVertexAttribArray(aXYZ);
-	gl.vertexAttribPointer(aXYZ, mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	for(var i = 0; i < meshes.length; ++i) {
+		var mesh = meshes[i];
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normalBuffer);
-	gl.enableVertexAttribArray(aNormal);
-	gl.vertexAttribPointer(aNormal, mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
+		gl.enableVertexAttribArray(aXYZ);
+		gl.vertexAttribPointer(aXYZ, mesh.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-	if(mesh.textures.length) {
-		// подаване на текстурни координати
-		gl.bindBuffer(gl.ARRAY_BUFFER, mesh.textureBuffer);
-		gl.enableVertexAttribArray(aST);
-		gl.vertexAttribPointer(aST, mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-		gl.uniform1i(uUseTexture,true);
+		gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normalBuffer);
+		gl.enableVertexAttribArray(aNormal);
+		gl.vertexAttribPointer(aNormal, mesh.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-		// ако текстурата е готова, правим я текуща
-		if (gl.isTexture(texture))
-		{
-			gl.bindTexture(gl.TEXTURE_2D, texture);
+		if(mesh.textures.length) {
+			// подаване на текстурни координати
+			gl.bindBuffer(gl.ARRAY_BUFFER, mesh.textureBuffer);
+			gl.enableVertexAttribArray(aST);
+			gl.vertexAttribPointer(aST, mesh.textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			gl.uniform1i(uUseTexture,true);
+
+			// ако текстурата е готова, правим я текуща
+			if (gl.isTexture(texture))
+			{
+				gl.bindTexture(gl.TEXTURE_2D, texture);
+			}
+		} else {
+			gl.uniform1i(uUseTexture,false);
+			gl.disableVertexAttribArray(aST);
 		}
-	} else {
-		gl.uniform1i(uUseTexture,false);
-		gl.disableVertexAttribArray(aST);
-	}
 
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-	gl.drawElements(gl.TRIANGLES, mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+		gl.drawElements(gl.TRIANGLES, mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+	}
 
 	requestAnimationFrame(drawFrame);
 }
