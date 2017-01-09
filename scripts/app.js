@@ -102,6 +102,13 @@ function fixBitmap(data)
 	return texData;
 }
 
+function cleanupBuffers()
+{
+	for(var i = 0; i < meshes.length; ++i) {
+		OBJ.deleteMeshBuffers(gl, meshes[0]);  
+	}
+}
+
 function readModel(e)
 {
 	var file = e.target.files[0];
@@ -114,9 +121,10 @@ function readModel(e)
 		    var objBuf = e.target.result;
 		    var objStr = new TextDecoder('UTF-8').decode(objBuf);
 
+		    cleanupBuffers();
 		    meshes = [];
 			meshes.push(new OBJ.Mesh(objStr));
-			OBJ.initMeshBuffers(gl, meshes[0]);		    
+			OBJ.initMeshBuffers(gl, meshes[0]);  
 		};
 		reader.readAsArrayBuffer(file);
 	} else if(/\.vas/.exec(file.name)) {
@@ -126,6 +134,7 @@ function readModel(e)
 		    var transport = new Transport();
 		    var dicts = transport.readFrom(message);
 
+		    cleanupBuffers();
 		    meshes = [];
 		    for(var i = 0; i < dicts.length; ++i) {
 		    	var dict = dicts[i];
@@ -170,8 +179,6 @@ function drawFrame()
 	gl.clear(gl.COLOR_BUFFER_BIT+gl.DEPTH_BUFFER_BIT);
 	
 	lookAt([viewD*cos(viewA)*cos(viewB),viewD*sin(viewA)*cos(viewB),viewD*sin(viewB)],[0,0,0],[0,0,1]);
-
-	// gl.uniform1f(uDist, viewD);
 
 	gl.vertexAttrib3fv(aColor,[1,0.75,0]);
 
