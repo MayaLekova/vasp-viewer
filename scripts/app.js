@@ -4,6 +4,15 @@ function start( )
 	canvas.addEventListener('webglcontextlost',function(event){event.preventDefault();},false);
 	canvas.addEventListener('webglcontextrestored',function(){init();},false);
 
+	// прехващане на мишката само над графичното поле
+	canvas.addEventListener('mousemove',mouseMove,false);
+	canvas.addEventListener('mousedown',mouseDown,false);
+	canvas.addEventListener('mouseup',mouseUp,false);
+	canvas.addEventListener('mouseout',mouseUp,false);
+	
+	// изключване на контекстното меню
+	canvas.addEventListener('contextmenu',function(e){e.preventDefault();},false);
+
 	document.getElementById('model-input')
   		.addEventListener('change', readModel, false);
 
@@ -90,7 +99,7 @@ function fixBitmap(data)
 		texData[i] = texData[i+2];
 		texData[i+2] = tmp;
 	}
-	return result;
+	return texData;
 }
 
 function readModel(e)
@@ -151,12 +160,18 @@ function readModel(e)
 	}
 }
 
+var viewA = 0;
+var viewB = 0;
+var viewD = 10;
+
 function drawFrame()
 {
 	time = now();
 	gl.clear(gl.COLOR_BUFFER_BIT+gl.DEPTH_BUFFER_BIT);
 	
-	lookAt([8*cos(time/5),8*sin(time/5),1],[0,0,0],[0,0,1]);
+	lookAt([viewD*cos(viewA)*cos(viewB),viewD*sin(viewA)*cos(viewB),viewD*sin(viewB)],[0,0,0],[0,0,1]);
+
+	// gl.uniform1f(uDist, viewD);
 
 	gl.vertexAttrib3fv(aColor,[1,0.75,0]);
 
@@ -195,4 +210,55 @@ function drawFrame()
 	}
 
 	requestAnimationFrame(drawFrame);
+}
+
+var drag = false;
+var pressedButton = 0;
+
+// при натискане на бутон
+function mouseDown(event)
+{
+	gl.canvas.style.cursor = 'move';
+	startX = getX(event);
+	startY = getY(event);
+	drag = true;
+	pressedButton = event.button;
+}
+
+// при пускане на бутон (все едно кой)
+function mouseUp(event)
+{
+	gl.canvas.style.cursor = 'default';
+	drag = false;
+	pressedButton = 0;
+}
+
+// при движение на мишката
+function mouseMove(event)
+{
+	// игнорираме движение, ако не влачим
+	if (!drag) return;
+
+	var dX = startX-getX(event);
+	var dY = startY-getY(event);
+	
+	if (pressedButton==0)
+	{
+		// ляв бутон - въртене с ограничение
+		viewA += dX/100;
+		viewB += dY/100;
+		if (viewB>1.57) viewB=1.57;
+		if (viewB<-1.57) viewB=-1.57;
+	}
+	else if(pressedButton == 2)
+	{
+		// десен бутон - мащабиране с ограничение
+		gl.canvas.style.cursor = 'n-resize';
+		viewD *= Math.pow(1.01,dY);
+		if (viewD>100) viewD=100;
+		if (viewD<3) viewD=3;
+	}
+	
+	startX = getX(event);
+	startY = getY(event);
 }

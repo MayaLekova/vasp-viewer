@@ -1725,3 +1725,15 @@ Torus.prototype.draw = function()
 
 	popMatrix();
 }
+
+// функция за удобство - връща X координата на миши събитие
+function getX(event)
+{
+	return event.clientX-gl.canvas.offsetLeft-gl.canvas.offsetWidth/2;
+}
+
+// функция за удобство - връща X координата на миши събитие
+function getY(event)
+{
+	return -event.clientY+gl.canvas.offsetTop+gl.canvas.offsetHeight/2;
+}
