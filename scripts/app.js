@@ -81,6 +81,18 @@ function simulateData()
 	saveAs(blob2, "mh.vas");
 }
 
+function fixBitmap(data)
+{
+	var texData = new Uint8Array(data, CONSTS.BitmapHeaderSize);
+	// TODO: read size from header
+	for(var i = 0; i < 512 * 512 * 3; i += 3) {
+		var tmp = texData[i];
+		texData[i] = texData[i+2];
+		texData[i+2] = tmp;
+	}
+	return result;
+}
+
 function readModel(e)
 {
 	var file = e.target.files[0];
@@ -112,11 +124,25 @@ function readModel(e)
 			    console.log(dict.mediaHeader);
 			    console.log(dict.entries[0]);
 
-			    var objStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
+			    if(dict.mediaHeader.type == CONSTS.AnimationPacketType.iDictType) {
+				    var objStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
 
-				mesh = new OBJ.Mesh(objStr);
-				OBJ.initMeshBuffers(gl, mesh);
-				meshes.push(mesh);
+					mesh = new OBJ.Mesh(objStr);
+					OBJ.initMeshBuffers(gl, mesh);
+					meshes.push(mesh);
+				} else if(dict.mediaHeader.type == CONSTS.AnimationPacketType.iTextureType) {
+					var texStr = new TextDecoder('UTF-8').decode(dict.entries[0].data);
+
+					// правим си текуща текстура
+					gl.bindTexture(gl.TEXTURE_2D, texture);
+					
+					var texData = fixBitmap(dict.entries[0].data);
+
+					// void gl.texImage2D(target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels);
+					// TODO: read width and height from header
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, texData);
+					gl.bindTexture(gl.TEXTURE_2D, null);
+				}
 			}		    
 		};
 		reader.readAsArrayBuffer(file);

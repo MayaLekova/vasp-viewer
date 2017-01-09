@@ -10,6 +10,16 @@ var CONSTS = {
 		reserved2: 7
 	},
 
+	AnimationPacketType: {
+		freeType:   0,
+		iDictType: 2,
+		pDictType: 3,
+		iScenType: 4,
+		pScenType: 5,
+		iTextureType: 6,
+		pTextureType: 7,
+	},
+
 	TransportFlags: {
 		startOfPacket: 1 << 0,
 		reserved1: 1 << 1,
@@ -20,6 +30,9 @@ var CONSTS = {
 	Prefix: 0b10010111,
 
 	DictEntryHeaderSize: 24,
+	TextureEntryHeaderSize: 24,
 	TransportHeaderSize: 4,
 	TransportPacketSize: 256,
+
+	BitmapHeaderSize: 54,
 }

@@ -40,10 +40,36 @@ DictEntry.prototype.readFrom = function(buf) {
 	this.data = new Uint8Array(buf, dataOffset, this.size);
 };
 
+var TextureEntry = function(
+	uuid,
+	type,
+	reference,
+	size,
+	data
+) {
+	this.uuid = uuid;
+	this.type = type;
+	this.reference = reference;
+	this.size = size;
+	this.data = data;
+};
+
+TextureEntry.prototype.readFrom = function(buf) {
+	this.uuid = new Uint8Array(buf, 0, 16);
+
+	var typeRef = new Uint32Array(buf, 16, 1)[0];
+	this.type = typeRef & 0xFF;
+	this.reference = typeRef >>> 8;
+
+	this.size = new Uint32Array(buf, 20, 1)[0];
+
+	this.data = new Uint8Array(buf, 24, this.size);
+}
+
 var IDictData = function(
-		mediaHeader,
-		entriesCount,
-		entries
+	mediaHeader,
+	entriesCount,
+	entries
 ) {
 	this.mediaHeader = mediaHeader,
 	this.entriesCount = entriesCount,
@@ -59,11 +85,19 @@ IDictData.prototype.readFrom = function(buf) {
 	var byteOffset = 12;
 
 	for(var i = 0; i < this.entriesCount; ++i) {
-		var deBuf = buf.slice(byteOffset);
-		this.entries[i] = new DictEntry();
-		this.entries[i].readFrom(deBuf);
+		if(this.mediaHeader.type == CONSTS.AnimationPacketType.iDictType) {
+			var deBuf = buf.slice(byteOffset);
+			this.entries[i] = new DictEntry();
+			this.entries[i].readFrom(deBuf);
 
-		byteOffset += CONSTS.DictEntryHeaderSize;
+			byteOffset += CONSTS.DictEntryHeaderSize;
+		} else if(this.mediaHeader.type == CONSTS.AnimationPacketType.iTextureType) {
+			var teBuf = buf.slice(byteOffset);
+			this.entries[i] = new TextureEntry();
+			this.entries[i].readFrom(teBuf);
+
+			byteOffset += CONSTS.TextureEntryHeaderSize;
+		}
 		byteOffset += this.entries[i].size;
 	}
 };
