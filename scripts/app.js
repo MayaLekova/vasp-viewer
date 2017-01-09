@@ -41,11 +41,6 @@ function init()
 	// създаваме (засега празна) текстура
 	texture = gl.createTexture();
 
-	// зареждаме асинхронно изображението за текстурата
-	var image = new Image();
-	image.onload = function() {imageLoaded(image)};
-	image.src = 'data/leopard.jpg';
-
 	var objStr = document.getElementById('my_cube.obj').innerHTML;
 	meshes = [];
 	meshes.push(new OBJ.Mesh(objStr));
@@ -159,6 +154,8 @@ function readModel(e)
 					// void gl.texImage2D(target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels);
 					// TODO: read width and height from header
 					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, texData);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 					gl.bindTexture(gl.TEXTURE_2D, null);
 				}
 			}		    
